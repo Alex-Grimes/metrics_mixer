@@ -10,11 +10,20 @@ defmodule Mix.Tasks.Metrics do
   def run(_args) do
     IO.puts("Running project metrics task...")
 
-    elixir_files =
-      File.cwd!()
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, ".ex"))
+    pattern = Path.join(File.cwd!(), "lib/**/*.ex*")
 
-    IO.puts("Found #{Enum.count(elixir_files)} .ex files.")
+    elixir_files = Path.wildcard(pattern)
+
+    total_lines =
+      elixir_files
+      |> Enum.map(fn path -> File.stream!(path, :line, []) end)
+      |> Enum.flat_map(fn stream -> Enum.to_list(stream) end)
+      |> Enum.count()
+
+    IO.puts("-----------------")
+    IO.puts("Project Metrics:")
+    IO.puts("-----------------")
+    IO.puts("Total Elixir files: #{Enum.count(elixir_files)}")
+    IO.puts("Total lines of code: #{total_lines}")
   end
 end
